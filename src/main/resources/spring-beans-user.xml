@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<!-- Properties file 정보 설정 -->
+	<context:property-placeholder location="classpath:value.properties" />
+	
+	<!-- DataSource 구현체인 HikariDataSource 를 SpringBean으로 등록 -->
+	<bean id="dataSource" class="com.zaxxer.hikari.HikariDataSource"
+		p:driverClassName="${db.driverClass}"
+		p:jdbcUrl="${db.url}"
+		p:username="${db.username}"
+		p:password="${db.password}"
+	 />
+	 
+	 <!-- Mybatis-Spring의 SqlSessionFactoryBean 을  SpringBean으로 등록 -->
+	 <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+	 	<property name="dataSource" ref="dataSource" />
+	 	<property name="configLocation"  value="classpath:mybatis/SqlMapConfig.xml" />
+	    <property name="mapperLocations">
+	    	<list>
+	    		<value>classpath:mybatis/*Mapper.xml</value>
+	    	</list>
+	    </property>
+	 </bean>
+	 
+	 <!-- Mybatis-Spring의 SqlSessionTemplate -->
+	 <bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+	 	<constructor-arg ref="sqlSessionFactory" />
+	 </bean>
+	 
+	 <!-- Mybatis-Spring의 MapperScannerConfigurer 을  SpringBean으로 등록 -->
+	 <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+	 	<property name="basePackage" value="myspring.user.dao.mapper" />
+	 	<property name="sqlSessionTemplateBeanName" value="sqlSession" />
+	 </bean>
+	 
+	 <!-- DAO, Service Bean Scanning -->
+	 <context:component-scan base-package="myspring.user">
+	 	<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+	 </context:component-scan>
+	 
+</beans>
